@@ -1,0 +1,1839 @@
+openapi: 3.0.0
+info:
+  title: kubuka kwesu tobecisi cabutonga
+  description: Kubuka is an organisation
+  version: 1.0.0
+
+servers:
+  - url: https://server.kubukaspace.com
+    description: Online development server
+
+paths:
+  /accounts/authenticate:
+    post:
+      summary: Authenticate account credentials and return a JWT token and a cookie with a refresh token
+      description: Accounts must be verified before authenticating.
+      operationId: authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user01@kubuka.com"
+                password:
+                  type: string
+                  example: "pass123"
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Account details, a JWT access token and a refresh token cookie
+          headers:
+            Set-Cookie:
+              description: "`refreshToken`"
+              schema:
+                type: string
+                example: refreshToken=51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550; Path=/; Expires=Tue, 16 Jun 2020 09:14:17 GMT; HttpOnly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  first_name:
+                    type: string
+                    example: "Author"
+                  last_name:
+                    type: string
+                    example: "Getme"
+                  gender:
+                    type: string
+                    example: "Male"
+                  home_address:
+                    type: string
+                    example: "1st St, Gweru"
+                  country:
+                    type: string
+                    example: "Zimbabwe"
+                  bio:
+                    type: string
+                    example: "Thanks man I am"
+                  email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  isVerified:
+                    type: boolean
+                    example: true
+                  jwtToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWIxMmUxOTdlMDZhNzZjY2RlZmMxMjEiLCJpZCI6IjVlYjEyZTE5N2UwNmE3NmNjZGVmYzEyMSIsImlhdCI6MTU4ODc1ODE1N30.xR9H0STbFOpSkuGA9jHNZOJ6eS7umHHqKRhI807YT1Y"
+        "400":
+          description: The email or password is incorrect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email or password is incorrect"
+  /accounts/refresh-token:
+    post:
+      summary: Use a refresh token to generate a new JWT token and a new refresh token
+      description: The refresh token is sent and returned via cookies.
+      operationId: refreshToken
+      parameters:
+        - in: cookie
+          name: refreshToken
+          description: The `refreshToken` cookie
+          schema:
+            type: string
+            example: 51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550
+      responses:
+        "200":
+          description: Account details, a JWT access token and a new refresh token cookie
+          headers:
+            Set-Cookie:
+              description: "`refreshToken`"
+              schema:
+                type: string
+                example: refreshToken=51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550; Path=/; Expires=Tue, 16 Jun 2020 09:14:17 GMT; HttpOnly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  first_name:
+                    type: string
+                    example: "Author"
+                  last_name:
+                    type: string
+                    example: "Getme"
+                  gender:
+                    type: string
+                    example: "Male"
+                  home_address:
+                    type: string
+                    example: "1st St, Gweru"
+                  country:
+                    type: string
+                    example: "Zimbabwe"
+                  bio:
+                    type: string
+                    example: "Thanks man I am"
+                  email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  isVerified:
+                    type: boolean
+                    example: true
+                  jwtToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWIxMmUxOTdlMDZhNzZjY2RlZmMxMjEiLCJpZCI6IjVlYjEyZTE5N2UwNmE3NmNjZGVmYzEyMSIsImlhdCI6MTU4ODc1ODE1N30.xR9H0STbFOpSkuGA9jHNZOJ6eS7umHHqKRhI807YT1Y"
+        "400":
+          description: The refresh token is invalid, revoked or expired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+  /accounts/revoke-token:
+    post:
+      summary: Revoke a refresh token
+      description: Admin users can revoke the tokens of any account, regular users can only revoke their own tokens.
+      operationId: revokeToken
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: cookie
+          name: refreshToken
+          description: The refresh token can be sent in a cookie or the post body, if both are sent the token in the body is used.
+          schema:
+            type: string
+            example: 51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550"
+      responses:
+        "200":
+          description: The refresh token was successfully revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token revoked"
+        "400":
+          description: The refresh token is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /accounts/register:
+    post:
+      summary: Register a new user account and send a verification email
+      description: The first account registered in the system is assigned the `Admin` role, other accounts are assigned the `User` role.
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "Author"
+                last_name:
+                  type: string
+                  example: "Getme"
+                gender:
+                  type: string
+                  example: "Male"
+                home_address:
+                  type: string
+                  example: "1st St, Gweru"
+                country:
+                  type: string
+                  example: "Zimbabwe"
+                bio:
+                  type: string
+                  example: "Thanks man I am"
+                email:
+                  type: string
+                  example: "user01@kubuka.com"
+                password:
+                  type: string
+                  example: "pass123"
+                confirmPassword:
+                  type: string
+                  example: "pass123"
+                acceptTerms:
+                  type: boolean
+              required:
+                - first_name
+                - last_name
+                - gender
+                - home_address
+                - country
+                - bio
+                - email
+                - password
+                - confirmPassword
+                - acceptTerms
+      responses:
+        "200":
+          description: The registration request was successful and a verification email has been sent to the specified email address
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Registration successful, please check your email for verification instructions"
+  /accounts/verify-email:
+    post:
+      summary: Verify a new account with a verification token received by email after registration
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "3c7f8d9c4cb348ff95a0b74a1452aa24fc9611bb76768bb9eafeeb826ddae2935f1880bc7713318f"
+              required:
+                - token
+      responses:
+        "200":
+          description: Verification was successful so you can now login to the account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Verification successful, you can now login"
+        "400":
+          description: Verification failed due to an invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Verification failed"
+  /accounts/forgot-password:
+    post:
+      summary: Submit email address to reset the password on an account
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user01@kubuka.com"
+              required:
+                - email
+      responses:
+        "200":
+          description: The request was received and an email has been sent to the specified address with password reset instructions (if the email address is associated with an account)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Please check your email for password reset instructions"
+  /accounts/validate-reset-token:
+    post:
+      summary: Validate the reset password token received by email after submitting to the /accounts/forgot-password route
+      operationId: validateResetToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "3c7f8d9c4cb348ff95a0b74a1452aa24fc9611bb76768bb9eafeeb826ddae2935f1880bc7713318f"
+              required:
+                - token
+      responses:
+        "200":
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token is valid"
+        "400":
+          description: Token is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+  /accounts/reset-password:
+    post:
+      summary: Reset the password for an account
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "3c7f8d9c4cb348ff95a0b74a1452aa24fc9611bb76768bb9eafeeb826ddae2935f1880bc7713318f"
+                password:
+                  type: string
+                  example: "newPass123"
+                confirmPassword:
+                  type: string
+                  example: "newPass123"
+              required:
+                - token
+                - password
+                - confirmPassword
+      responses:
+        "200":
+          description: Password reset was successful so you can now login to the account with the new password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password reset successful, you can now login"
+        "400":
+          description: Password reset failed due to an invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+  /accounts:
+    get:
+      summary: Get a list of all accounts
+      description: Restricted to admin users.
+      operationId: getAllAccounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: An array of all accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "5eb12e197e06a76ccdefc121"
+                    first_name:
+                      type: string
+                      example: "Author"
+                    last_name:
+                      type: string
+                      example: "Getme"
+                    gender:
+                      type: string
+                      example: "Male"
+                    home_address:
+                      type: string
+                      example: "1st St, Gweru"
+                    country:
+                      type: string
+                      example: "Zimbabwe"
+                    bio:
+                      type: string
+                      example: "Thanks man I am"
+                    email:
+                      type: string
+                      example: "user01@kubuka.com"
+                    role:
+                      type: string
+                      example: "Admin"
+                    created:
+                      type: string
+                      example: "2020-05-05T09:12:57.848Z"
+                    updated:
+                      type: string
+                      example: "2020-05-08T03:11:21.553Z"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    post:
+      summary: Create a new account
+      description: Restricted to admin users.
+      operationId: createAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "Author"
+                last_name:
+                  type: string
+                  example: "Getme"
+                gender:
+                  type: string
+                  example: "Male"
+                home_address:
+                  type: string
+                  example: "1st St, Gweru"
+                country:
+                  type: string
+                  example: "Zimbabwe"
+                bio:
+                  type: string
+                  example: "Thanks man I am"
+                email:
+                  type: string
+                  example: "user01@kubuka.com"
+                password:
+                  type: string
+                  example: "pass123"
+                confirmPassword:
+                  type: string
+                  example: "pass123"
+                role:
+                  type: string
+                  enum: [superuser, Admin, member, User]
+              required:
+                - first_name
+                - last_name
+                - gender
+                - home_address
+                - country
+                - bio
+                - email
+                - password
+                - confirmPassword
+                - role
+      responses:
+        "200":
+          description: Account created successfully, verification is not required for accounts created with this endpoint. The details of the new account are returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  first_name:
+                    type: string
+                    example: "Author"
+                  last_name:
+                    type: string
+                    example: "Getme"
+                  gender:
+                    type: string
+                    example: "Male"
+                  home_address:
+                    type: string
+                    example: "1st St, Gweru"
+                  country:
+                    type: string
+                    example: "Zimbabwe"
+                  bio:
+                    type: string
+                    example: "Thanks man I am"
+                  email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+        "400":
+          description: Email is already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email 'user01@kubuka.com' is already registered"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /accounts/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: Account id
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a single account by id
+      description: Admin users can access any account, regular users are restricted to their own account.
+      operationId: getAccountById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Details of the specified account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  first_name:
+                    type: string
+                    example: "Author"
+                  last_name:
+                    type: string
+                    example: "Getme"
+                  gender:
+                    type: string
+                    example: "Male"
+                  home_address:
+                    type: string
+                    example: "1st St, Gweru"
+                  country:
+                    type: string
+                    example: "Zimbabwe"
+                  bio:
+                    type: string
+                    example: "Thanks man I am"
+                  email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    put:
+      summary: Update an account
+      description: Admin users can update any account including role, regular users are restricted to their own account and cannot update role.
+      operationId: updateAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "Author"
+                last_name:
+                  type: string
+                  example: "Getme"
+                gender:
+                  type: string
+                  example: "Male"
+                home_address:
+                  type: string
+                  example: "1st St, Gweru"
+                country:
+                  type: string
+                  example: "Zimbabwe"
+                bio:
+                  type: string
+                  example: "Thanks man I am"
+                email:
+                  type: string
+                  example: "user01@kubuka.com"
+                password:
+                  type: string
+                  example: "pass123"
+                confirmPassword:
+                  type: string
+                  example: "pass123"
+                role:
+                  type: string
+                  enum: [superuser, Admin, member, User]
+      responses:
+        "200":
+          description: Account updated successfully. The details of the updated account are returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  first_name:
+                    type: string
+                    example: "Author"
+                  last_name:
+                    type: string
+                    example: "Getme"
+                  gender:
+                    type: string
+                    example: "Male"
+                  home_address:
+                    type: string
+                    example: "1st St, Gweru"
+                  country:
+                    type: string
+                    example: "Zimbabwe"
+                  bio:
+                    type: string
+                    example: "Thanks man I am"
+                  email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    delete:
+      summary: Delete an account
+      description: Admin users can delete any account, regular users are restricted to their own account.
+      operationId: deleteAccount
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /bookings/create:
+    post:
+      summary: Book for your venue and meals
+      description: The booking office is not responsible for loss of materials during events
+      operationId: create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_names:
+                  type: string
+                  example: "Author Agent"
+                company_name:
+                  type: string
+                  example: "Getme"
+                company_address:
+                  type: string
+                  example: "Male 2355 mkhb3"
+                agent_name:
+                  type: string
+                  example: "Mape Gweru"
+                agent_phone:
+                  type: string
+                  example: "04411552320"
+                numberOfDays:
+                  type: string
+                  example: "5"
+                agent_email:
+                  type: string
+                  example: "user01@kubuka.com"
+                numberOfGuests:
+                  type: string
+                  example: "23"
+                from_date:
+                  type: string
+                  example: "2020-05-05T09:12:57.848Z"
+                to_date:
+                  type: string
+                  example: "2020-05-05T09:12:57.848Z"
+                venue_type:
+                  type: string
+                  example: "Boord room"
+                price:
+                  type: string
+                  example: "202"
+              required:
+                - full_names
+                - company_name
+                - company_address
+                - agent_name
+                - agent_email
+                - agent_phone
+                - numberOfDays
+                - numberOfGuests
+                - from_date
+                - to_date
+                - venue_type
+                - price
+      responses:
+        "200":
+          description: The Cart made to the organisation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cart successfully made"
+  /bookings/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: Booking id
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a single booking by id
+      description: Admin users can access any booking, regular users are restricted to their own booking.
+      operationId: getBookingById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Details of the specified booking
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  full_names:
+                    type: string
+                    example: "Author Minuusd"
+                  company_name:
+                    type: string
+                    example: "Getme"
+                  company_address:
+                    type: string
+                    example: "45 manho gerus"
+                  agent_name:
+                    type: string
+                    example: "minuhed Mig"
+                  agent_phone:
+                    type: string
+                    example: "0412251745"
+                  numberOfDays:
+                    type: string
+                    example: "5"
+                  agent_email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  numberOfGuests:
+                    type: string
+                    example: "4"
+                  venue_type:
+                    type: string
+                    example: "Igzin for"
+                  price:
+                    type: string
+                    example: "2020"
+                  from_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  to_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    delete:
+      summary: Delete an booking
+      description: Admin users can delete any booking, regular users are restricted to their own booking.
+      operationId: deleteBooking
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Booking deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Booking deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /cart/{id}/create:
+    post:
+      summary: Book for your venue and meals
+      description: The booking office is not responsible for loss of materials during events
+      operationId: createCart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_name:
+                  type: string
+                  example: "Getme"
+                company_address:
+                  type: string
+                  example: "Male 2355 mkhb3"
+                agent_name:
+                  type: string
+                  example: "Mape Gweru"
+                agent_phone:
+                  type: string
+                  example: "04411552320"
+                numberOfDays:
+                  type: number
+                  example: 5
+                agent_email:
+                  type: string
+                  example: "user01@kubuka.com"
+                numberOfGuests:
+                  type: number
+                  example: 40
+                from_date:
+                  type: string
+                  example: "2020-05-05T09:12:57.848Z"
+                to_date:
+                  type: string
+                  example: "2020-05-05T09:12:57.848Z"
+                venue_type:
+                  type: string
+                  example: "Boord room"
+                price:
+                  type: number
+                  example: 200
+              required:
+                - company_name
+                - company_address
+                - agent_name
+                - agent_email
+                - agent_phone
+                - numberOfDays
+                - numberOfGuests
+                - from_date
+                - to_date
+                - venue_type
+                - price
+      responses:
+        "200":
+          description: The Cart was made to the organisation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cart was successfully made"
+  /cart/{uid}:
+    parameters:
+      - in: path
+        name: id
+        description: Get all items in cart
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a single cart by id
+      description: Admin users can access any cart, regular users are restricted to their own cart.
+      operationId: getAllCartsById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Details of the specified cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  company_name:
+                    type: string
+                    example: "Getme"
+                  company_address:
+                    type: string
+                    example: "45 manho gerus"
+                  agent_name:
+                    type: string
+                    example: "minuhed Mig"
+                  agent_phone:
+                    type: string
+                    example: "0412251745"
+                  numberOfDays:
+                    type: number
+                    example: 5
+                  agent_email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  numberOfGuests:
+                    type: number
+                    example: 4
+                  venue_type:
+                    type: string
+                    example: "Igzin for"
+                  price:
+                    type: number
+                    example: 2000
+                  cartOwnerId:
+                    type: string
+                    example: "51eb12e197e06a76cdcdefc121"
+                  from_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  to_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  cancelled:
+                    type: boolean
+                    example: true
+                  honoured:
+                    type: boolean
+                    example: true
+                  returned:
+                    type: boolean
+                    example: true
+                  confirmed:
+                    type: boolean
+                    example: true
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /cart/{iid}/{uid}:
+    parameters:
+      - in: path
+        name: id
+        description: Cart Items
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a single cart by id
+      description: Admin users can access any cart, regular users are restricted to their own cart.
+      operationId: getCartById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Details of the specified cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  company_name:
+                    type: string
+                    example: "Getme"
+                  company_address:
+                    type: string
+                    example: "45 manho gerus"
+                  agent_name:
+                    type: string
+                    example: "minuhed Mig"
+                  agent_phone:
+                    type: string
+                    example: "0412251745"
+                  numberOfDays:
+                    type: number
+                    example: 5
+                  agent_email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  numberOfGuests:
+                    type: number
+                    example: 4
+                  venue_type:
+                    type: string
+                    example: "Igzin for"
+                  price:
+                    type: number
+                    example: 2000
+                  cartOwnerId:
+                    type: string
+                    example: "51eb12e197e06a76cdcdefc121"
+                  from_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  to_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  cancelled:
+                    type: boolean
+                    example: true
+                  honoured:
+                    type: boolean
+                    example: true
+                  returned:
+                    type: boolean
+                    example: true
+                  confirmed:
+                    type: boolean
+                    example: true
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /cart/{iid}/{uid}/update:
+    parameters:
+      - in: path
+        name: id
+        description: Cart Update schema
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    put:
+      summary: Update a cart
+      description: Owner of the cart can update, admins can also update certain parts only
+      operationId: updateCart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_name:
+                  type: string
+                  example: "Getme"
+                company_address:
+                  type: string
+                  example: "Male 2355 mkhb3"
+                agent_name:
+                  type: string
+                  example: "Mape Gweru"
+                agent_phone:
+                  type: string
+                  example: "04411552320"
+                numberOfDays:
+                  type: number
+                  example: 5
+                agent_email:
+                  type: string
+                  example: "user01@kubuka.com"
+                numberOfGuests:
+                  type: number
+                  example: 40
+                from_date:
+                  type: string
+                  example: "2020-05-05T09:12:57.848Z"
+                to_date:
+                  type: string
+                  example: "2020-05-05T09:12:57.848Z"
+                venue_type:
+                  type: string
+                  example: "Boord room"
+                price:
+                  type: number
+                  example: 200
+                cancelled:
+                  type: boolean
+                  example: true
+                honoured:
+                  type: boolean
+                  example: true
+                returned:
+                  type: boolean
+                  example: true
+                confirmed:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: Account updated successfully. The details of the updated account are returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  company_name:
+                    type: string
+                    example: "Getme"
+                  company_address:
+                    type: string
+                    example: "45 manho gerus"
+                  agent_name:
+                    type: string
+                    example: "minuhed Mig"
+                  agent_phone:
+                    type: string
+                    example: "0412251745"
+                  numberOfDays:
+                    type: number
+                    example: 5
+                  agent_email:
+                    type: string
+                    example: "user01@kubuka.com"
+                  numberOfGuests:
+                    type: number
+                    example: 4
+                  venue_type:
+                    type: string
+                    example: "Igzin for"
+                  price:
+                    type: number
+                    example: 2000
+                  cartOwnerId:
+                    type: string
+                    example: "51eb12e197e06a76cdcdefc121"
+                  from_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  to_date:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+                  cancelled:
+                    type: boolean
+                    example: true
+                  honoured:
+                    type: boolean
+                    example: true
+                  returned:
+                    type: boolean
+                    example: true
+                  confirmed:
+                    type: boolean
+                    example: true
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /cart/{iid}/{uid}:
+    parameters:
+      - in: path
+        name: id
+        description: Cart Item delete
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    delete:
+      summary: Delete a cart
+      description: Admin users can delete any cart, regular users are restricted to their own cart.
+      operationId: deleteCart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Cart deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cart deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /contactus:
+    post:
+      summary: Leave a message for admins to contact you latter
+      description: Save messages from visitor
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                names:
+                  type: string
+                  example: "Mwana wa Kubuka"
+                email:
+                  type: string
+                  example: "info@kubuka.com"
+                message:
+                  type: string
+                  example: "Thanks kubuka, I would like to invest."
+              required:
+                - names
+                - email
+                - message
+      responses:
+        "200":
+          description: The email has been successfully subscribed to the Basilwizi and will receive regular updates on news and latest stories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message was went to Admin"
+    get:
+      summary: Get a list of all messages
+      description: Restricted to admin users.
+      operationId: getAllContactus
+      responses:
+        "200":
+          description: An array of all messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "5eb12e197e06a76ccdefc121"
+                    names:
+                      type: string
+                      example: "Mwana wa Buka"
+                    email:
+                      type: string
+                      example: "info@kubuka.com"
+                    message:
+                      type: string
+                      example: "Thanks kubuka, I would like to invest."
+                    created:
+                      type: string
+                      example: "2020-05-05T09:12:57.848Z"
+                    updated:
+                      type: string
+                      example: "2020-05-08T03:11:21.553Z"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    delete:
+      summary: Delete a Message
+      description: Admin users can delete any Message, regular users are restricted to their own Message.
+      operationId: deleteCart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /blog:
+    post:
+      summary: Make your nice post
+      description: Save a blog
+      operationId: createBlog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  exaple: "Kubuka hubitual"
+                email:
+                  type: string
+                  example: "info@kubuka.com"
+                phone:
+                  type: string
+                  example: "0994455660"
+                blog_title:
+                  type: string
+                  example: "Information for bakwesu"
+                blog_content:
+                  type: string
+                  example: "Thanks kubuka, I would like to invest."
+              required:
+                - name
+                - email
+                - phone
+                - blog_title
+                - blog_content
+      responses:
+        "200":
+          description: Blog post has been created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Blog post created"
+    get:
+      summary: Get a list of all blogs
+      description: All visitors and users can see blogs.
+      operationId: getAllBlogs
+      responses:
+        "200":
+          description: An array of all blogs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "5eb12e197e06a76ccdefc121"
+                    name:
+                      type: string
+                      exaple: "Kubuka hubitual"
+                    email:
+                      type: string
+                      example: "info@kubuka.com"
+                    phone:
+                      type: string
+                      example: "0994455660"
+                    blog_title:
+                      type: string
+                      example: "Information for bakwesu"
+                    blog_content:
+                      type: string
+                      example: "Thanks kubuka, I would like to invest."
+                    created:
+                      type: string
+                      example: "2020-05-05T09:12:57.848Z"
+                    updated:
+                      type: string
+                      example: "2020-05-08T03:11:21.553Z"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /blog/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: Blog id
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a single blog by id
+      description: Admin users can access any blog, regular users are restricted to their own blog.
+      operationId: getBlogById
+      responses:
+        "200":
+          description: Details of the blog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  name:
+                    type: string
+                    exaple: "Kubuka hubitual"
+                  email:
+                    type: string
+                    example: "info@kubuka.com"
+                  phone:
+                    type: string
+                    example: "0994455660"
+                  blog_title:
+                    type: string
+                    example: "Information for bakwesu"
+                  blog_content:
+                    type: string
+                    example: "Thanks kubuka, I would like to invest."
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+    put:
+      summary: Update a blog
+      description: Owner of the blog can update, admins can also update certin parts only
+      operationId: updateBlog
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  exaple: "Kubuka hubitual"
+                email:
+                  type: string
+                  example: "info@kubuka.com"
+                phone:
+                  type: string
+                  example: "0994455660"
+                blog_title:
+                  type: string
+                  example: "Information for bakwesu"
+                blog_content:
+                  type: string
+                  example: "Thanks kubuka, I would like to invest."
+      responses:
+        "200":
+          description: Blog updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  name:
+                    type: string
+                    exaple: "Kubuka hubitual"
+                  email:
+                    type: string
+                    example: "info@kubuka.com"
+                  phone:
+                    type: string
+                    example: "0994455660"
+                  blog_title:
+                    type: string
+                    example: "Information for bakwesu"
+                  blog_content:
+                    type: string
+                    example: "Thanks kubuka, I would like to invest."
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    delete:
+      summary: Delete a Blog
+      description: Admin users can delete any Blog, regular users are restricted to their own Blog.
+      operationId: deleteCart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Blog deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Blog deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /comments/{id}/comment:
+    post:
+      summary: Write a new comment
+      description: The comments to poems
+      operationId: newComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commenter_name:
+                  type: string
+                  example: "Author Writer"
+                comment_body:
+                  type: string
+                  example: "Get me that"
+              required:
+                - commenter_name
+                - comment_body
+      responses:
+        "200":
+          description: Comment has been saved to database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment has been saved to database"
+  /comments/{bid}:
+    parameters:
+      - in: path
+        name: id
+        description: Comment blog id
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a list of all comments
+      description: All users, including guests, can access this information.
+      operationId: getAllComments
+      responses:
+        "200":
+          description: An array of all comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "5eb12e197e06a76ccdefc121"
+                    commenter_name:
+                      type: string
+                      example: "Author"
+                    comment_body:
+                      type: string
+                      example: "The poem"
+                    comment_to_id:
+                      type: string
+                      example: "5ced334ab4554bbafdde445da4ed2"
+                    created:
+                      type: string
+                      example: "2020-05-05T09:12:57.848Z"
+                    updated:
+                      type: string
+                      example: "2020-05-08T03:11:21.553Z"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /comments/{bid}/{cid}:
+    parameters:
+      - in: path
+        name: id
+        description: Comment id
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    get:
+      summary: Get a single comment by id
+      description: Admin users can access any comment, regular users are restricted to their own comment.
+      operationId: getAccountById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Details of the specified comment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  comment_body:
+                    type: string
+                    example: "Mr me and my"
+                  commenter_name:
+                    type: string
+                    example: "Author"
+                  comment_to_id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /comments/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: Comment id
+        required: true
+        example: "5eb12e197e06a76ccdefc121"
+        schema:
+          type: string
+    put:
+      summary: Update a comment
+      description: Admin users can update any comment
+      operationId: updateComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commenter_name:
+                  type: string
+                  example: "Author"
+                comment_body:
+                  type: string
+                  example: "The comment"
+      responses:
+        "200":
+          description: Comment updated successfully. The details of the updated comment are returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  commenter_name:
+                    type: string
+                    example: "Author"
+                  comment_body:
+                    type: string
+                    example: "The poem"
+                  comment_to_id:
+                    type: string
+                    example: "5ced334ab4554bbafdde445da4ed2"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    delete:
+      summary: Delete an Comment
+      description: Admin users can delete items
+      operationId: deleteComment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid, or the user does not have access to perform the action
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthorized"
+    NotFoundError:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Not Found"
+                
