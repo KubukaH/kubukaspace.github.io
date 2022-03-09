@@ -1,6 +1,5 @@
-# Kubuka Space PBC
-## Scouting The Hidden Genius.
+---
+layout: default
+---
 
-`https://kubukaspace.github.io/`
-
-`https://www.kubukaspace.com/`
+{% include_relative test_header.md %}
