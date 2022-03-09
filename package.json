@@ -5,7 +5,8 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node server.js build"
   },
   "author": "Mapenzi Mudimba",
   "license": "MIT",
@@ -13,7 +14,7 @@
     "node": "16.14.0",
     "npm": "8.x"
   },
-  "homepage": "https://www.kubukaspace.com",
+  "homepage": "https://{pages-endpoint}/{repo}",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
@@ -22,6 +23,7 @@
     "express": "^4.17.3",
     "express-jwt": "^6.1.1",
     "fs": "^0.0.1-security",
+    "gh-pages": "^3.2.3",
     "googleapis": "^95.0.0",
     "gridfile": "^1.1.2",
     "http-errors": "^2.0.0",
